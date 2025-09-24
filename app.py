@@ -84,5 +84,9 @@ with gr.Blocks(title="Detection App") as demo:
 
 
 if __name__ == "__main__":
-    is_space = os.environ.get("SPACE_ID") is not None
-    demo.launch(server_name="127.0.0.1", server_port=int(os.getenv("PORT", 7860)), share=not is_space)
+    server_name = "0.0.0.0" if os.getenv("RENDER") else "127.0.0.1"
+    demo.launch(
+        server_name=server_name,
+        server_port=int(os.getenv("PORT", 7860))
+    )
+
