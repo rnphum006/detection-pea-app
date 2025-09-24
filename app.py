@@ -4,52 +4,38 @@ import numpy as np
 import gradio as gr
 from ultralytics import YOLO
 from PIL import Image
+from huggingface_hub import hf_hub_download
 
 # -----------------------------
 # Load YOLO model
 # -----------------------------
-MODEL_PATH = os.getenv("YOLO_WEIGHTS", "best.pt")
-
-class YoloSingleton:
-    _model = None
-
-    @classmethod
-    def get_model(cls):
-        if cls._model is None:
-            if not os.path.exists(MODEL_PATH):
-                raise FileNotFoundError(
-                    f"Model weights not found at {MODEL_PATH}. Place your trained file 'best.pt' here or set YOLO_WEIGHTS."
-                )
-            cls._model = YOLO(MODEL_PATH)
-        return cls._model
-
-
-def bgr_to_rgb(img: np.ndarray) -> np.ndarray:
-    return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-
-def rgb_to_bgr(img: np.ndarray) -> np.ndarray:
-    return cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-
-
-def run_inference(frame_rgb: np.ndarray, img_size=640, conf=0.25, iou=0.45):
-    model = YoloSingleton.get_model()
-    frame_bgr = rgb_to_bgr(frame_rgb)
-    results = model.predict(
-        source=frame_bgr, imgsz=img_size, conf=conf, iou=iou, verbose=False
-    )
-    annotated_bgr = results[0].plot()
-    return bgr_to_rgb(annotated_bgr)
-
 
 # -----------------------------
-# Detect on uploaded image (or camera snapshot from mobile)
+# Config โมเดลบน Hugging Face
+# -----------------------------
+HF_REPO_ID = "Phum52321/detection-app"
+HF_FILENAME = "best.pt"
+
+def load_model():
+    weights = hf_hub_download(repo_id=HF_REPO_ID, filename=HF_FILENAME)
+    return YOLO(weights)
+
+_model = None
+def get_model():
+    global _model
+    if _model is None:
+        _model = load_model()
+    return _model
+
+# -----------------------------
+# Inference
 # -----------------------------
 def detect_image(image: np.ndarray, img_size=640, conf=0.25, iou=0.45):
     if image is None:
         return None
-    return run_inference(image, img_size=img_size, conf=conf, iou=iou)
-
+    model = get_model()
+    results = model.predict(source=image, imgsz=img_size, conf=conf, iou=iou, verbose=False)
+    return results[0].plot()
 
 # -----------------------------
 # Build Gradio UI
