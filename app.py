@@ -69,8 +69,10 @@ with gr.Blocks(title="Detection App") as demo:
     )
 
 
-demo.launch(
-    server_name="0.0.0.0",
-    server_port=int(os.getenv("PORT", 7860))
-)
-
+if __name__ == "__main__":
+    import os
+    demo.launch(
+        server_name="0.0.0.0",
+        server_port=int(os.getenv("PORT", 7860)),  # ใช้พอร์ตจากระบบของ Spaces
+        ssr_mode=False                              # กันอาการค้างที่ "Starting..."
+    )
