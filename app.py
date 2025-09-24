@@ -84,9 +84,10 @@ with gr.Blocks(title="Detection App") as demo:
 
 
 if __name__ == "__main__":
-    server_name = "0.0.0.0" if os.getenv("RENDER") else "127.0.0.1"
+    port = int(os.getenv("PORT", 10000))  # Render จะส่งค่า PORT มา
     demo.launch(
-        server_name=server_name,
-        server_port=int(os.getenv("PORT", 7860))
+        server_name="0.0.0.0",             # ต้อง bind 0.0.0.0 เท่านั้น
+        server_port=port,
+        share=False                        # ไม่ต้องใช้ share link ใน Render
     )
 
